@@ -73,6 +73,7 @@ class ConfigStore(private val plugin: JavaPlugin) {
                 areasById[id] = AreaDefinition(
                     id = id,
                     blockBreaking = TriState.fromRaw(yml.getString("block_breaking")),
+                    blockPlacing = TriState.fromRaw(yml.getString("block_placing")),
                     interactions = TriState.fromRaw(yml.getString("interactions")),
                     listeners = listenersMap,
                 )

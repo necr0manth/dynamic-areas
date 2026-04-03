@@ -4,8 +4,10 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.Event
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.UUID
@@ -18,18 +20,21 @@ class AreaEventBridge(
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     fun onInteract(event: PlayerInteractEvent) {
-        if (event.action != Action.RIGHT_CLICK_BLOCK) {
-            return
-        }
+        if (event.action != Action.RIGHT_CLICK_BLOCK) return
         val clicked = event.clickedBlock ?: return
-        val areaIds = runtime.resolveAreasAtBlock(clicked.location)
-        if (areaIds.isEmpty()) {
-            return
-        }
+        // Only handle genuine block interactions; non-interactable blocks are clicked when placing.
+        // Also skip when sneaking — sneaking bypasses block interaction in favour of item use.
+        @Suppress("DEPRECATION")
+        if (!clicked.type.isInteractable || event.player.isSneaking) return
 
+        val areaIds = runtime.resolveAreasAtBlock(clicked.location)
+        if (areaIds.isEmpty()) return
+
+        // Use setUseInteractedBlock so we only affect the block interaction,
+        // not the item-in-hand use (block placement), which is independent.
         when (runtime.aggregateInteractions(areaIds)) {
-            TriState.ALLOW -> event.isCancelled = false
-            TriState.DENY -> event.isCancelled = true
+            TriState.ALLOW -> event.setUseInteractedBlock(Event.Result.ALLOW)
+            TriState.DENY -> event.setUseInteractedBlock(Event.Result.DENY)
             TriState.IGNORE -> Unit
         }
 
@@ -41,6 +46,19 @@ class AreaEventBridge(
         ctx["z"] = clicked.z.toString()
         areaIds.forEach { areaId ->
             listenerCommandExecutor.execute(areaId, runtime.listeners(areaId, AreaEventType.ON_INTERACT), ctx)
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    fun onBlockPlace(event: BlockPlaceEvent) {
+        val areaIds = runtime.resolveAreasAtBlock(event.block.location)
+        if (areaIds.isEmpty()) {
+            return
+        }
+        when (runtime.aggregateBlockPlacing(areaIds)) {
+            TriState.ALLOW -> event.isCancelled = false
+            TriState.DENY -> event.isCancelled = true
+            TriState.IGNORE -> Unit
         }
     }
 

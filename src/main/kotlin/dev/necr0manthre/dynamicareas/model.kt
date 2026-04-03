@@ -55,6 +55,7 @@ enum class TriState {
 data class AreaDefinition(
     val id: String,
     val blockBreaking: TriState,
+    val blockPlacing: TriState,
     val interactions: TriState,
     val listeners: Map<AreaEventType, List<String>>,
 )

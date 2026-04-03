@@ -66,6 +66,10 @@ class DynamicAreaRuntime(
         return aggregate(areaIds) { it.blockBreaking }
     }
 
+    fun aggregateBlockPlacing(areaIds: Set<String>): TriState {
+        return aggregate(areaIds) { it.blockPlacing }
+    }
+
     fun aggregateInteractions(areaIds: Set<String>): TriState {
         return aggregate(areaIds) { it.interactions }
     }
