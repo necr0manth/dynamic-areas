@@ -7,7 +7,12 @@ import org.bukkit.event.Listener
 import org.bukkit.event.Event
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockExplodeEvent
+import org.bukkit.event.block.BlockPistonExtendEvent
+import org.bukkit.event.block.BlockPistonRetractEvent
 import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.entity.EntityChangeBlockEvent
+import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import java.util.UUID
@@ -72,6 +77,71 @@ class AreaEventBridge(
             TriState.ALLOW -> event.isCancelled = false
             TriState.DENY -> event.isCancelled = true
             TriState.IGNORE -> Unit
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun onEntityExplode(event: EntityExplodeEvent) {
+        event.blockList().removeIf { block ->
+            val areaIds = runtime.resolveAreasAtBlock(block.location)
+            areaIds.isNotEmpty() && runtime.aggregateProtect(areaIds)
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun onBlockExplode(event: BlockExplodeEvent) {
+        event.blockList().removeIf { block ->
+            val areaIds = runtime.resolveAreasAtBlock(block.location)
+            areaIds.isNotEmpty() && runtime.aggregateProtect(areaIds)
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun onPistonExtend(event: BlockPistonExtendEvent) {
+        val direction = event.direction
+        // Check the position the piston head would occupy (handles empty-space extension into a zone)
+        val headPos = event.block.getRelative(direction)
+        var areaIds = runtime.resolveAreasAtBlock(headPos.location)
+        if (areaIds.isNotEmpty() && runtime.aggregateProtect(areaIds)) {
+            event.isCancelled = true
+            return
+        }
+        for (block in event.blocks) {
+            areaIds = runtime.resolveAreasAtBlock(block.location)
+            if (areaIds.isNotEmpty() && runtime.aggregateProtect(areaIds)) {
+                event.isCancelled = true
+                return
+            }
+            val destAreaIds = runtime.resolveAreasAtBlock(block.getRelative(direction).location)
+            if (destAreaIds.isNotEmpty() && runtime.aggregateProtect(destAreaIds)) {
+                event.isCancelled = true
+                return
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun onPistonRetract(event: BlockPistonRetractEvent) {
+        val direction = event.direction
+        for (block in event.blocks) {
+            var areaIds = runtime.resolveAreasAtBlock(block.location)
+            if (areaIds.isNotEmpty() && runtime.aggregateProtect(areaIds)) {
+                event.isCancelled = true
+                return
+            }
+            val destAreaIds = runtime.resolveAreasAtBlock(block.getRelative(direction.oppositeFace).location)
+            if (destAreaIds.isNotEmpty() && runtime.aggregateProtect(destAreaIds)) {
+                event.isCancelled = true
+                return
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun onEntityChangeBlock(event: EntityChangeBlockEvent) {
+        val areaIds = runtime.resolveAreasAtBlock(event.block.location)
+        if (areaIds.isNotEmpty() && runtime.aggregateProtect(areaIds)) {
+            event.isCancelled = true
         }
     }
 

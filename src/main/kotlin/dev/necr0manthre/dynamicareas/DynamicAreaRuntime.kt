@@ -74,6 +74,18 @@ class DynamicAreaRuntime(
         return aggregate(areaIds) { it.interactions }
     }
 
+    fun aggregateProtect(areaIds: Set<String>): Boolean {
+        var hasEnable = false
+        areaIds.forEach { id ->
+            when (configStore.areasById[id]?.protect) {
+                ProtectState.DISABLE -> return false
+                ProtectState.ENABLE -> hasEnable = true
+                else -> Unit
+            }
+        }
+        return hasEnable
+    }
+
     fun listeners(areaId: String, eventType: AreaEventType): List<String> {
         return configStore.areasById[areaId]?.listeners?.get(eventType).orEmpty()
     }

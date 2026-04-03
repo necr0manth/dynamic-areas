@@ -75,6 +75,7 @@ class ConfigStore(private val plugin: JavaPlugin) {
                     blockBreaking = TriState.fromRaw(yml.getString("block_breaking")),
                     blockPlacing = TriState.fromRaw(yml.getString("block_placing")),
                     interactions = TriState.fromRaw(yml.getString("interactions")),
+                    protect = ProtectState.fromRaw(yml.getString("protect")),
                     listeners = listenersMap,
                 )
             }

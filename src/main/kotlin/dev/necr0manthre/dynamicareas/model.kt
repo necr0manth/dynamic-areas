@@ -36,6 +36,22 @@ enum class AreaEventType(val key: String) {
     }
 }
 
+enum class ProtectState {
+    ENABLE,
+    DISABLE,
+    DEFAULT;
+
+    companion object {
+        fun fromRaw(raw: String?): ProtectState {
+            return when (raw?.trim()?.lowercase(Locale.ROOT)) {
+                "enable" -> ENABLE
+                "disable" -> DISABLE
+                else -> DEFAULT
+            }
+        }
+    }
+}
+
 enum class TriState {
     ALLOW,
     DENY,
@@ -57,6 +73,7 @@ data class AreaDefinition(
     val blockBreaking: TriState,
     val blockPlacing: TriState,
     val interactions: TriState,
+    val protect: ProtectState,
     val listeners: Map<AreaEventType, List<String>>,
 )
 
