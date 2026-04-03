@@ -1,0 +1,17 @@
+name: dynamic-areas
+version: '$version'
+
+main: dev.necr0manthre.dynamicareas.DynamicAreas
+api-version: '1.21.11'
+load: POSTWORLD
+bootstrapper: dev.necr0manthre.dynamicareas.DynamicAreaBootstrap
+folia-supported: true
+dependencies:
+  server:
+    WorldEdit:
+      load: BEFORE
+      required: false
+
+permissions:
+  dynamicareas.use:
+    default: op
