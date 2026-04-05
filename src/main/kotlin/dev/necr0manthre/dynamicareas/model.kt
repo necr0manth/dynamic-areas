@@ -3,6 +3,8 @@ package dev.necr0manthre.dynamicareas
 import java.util.Locale
 import java.util.UUID
 
+data class GroupKey(val worldId: UUID, val pos: Vec3i)
+
 data class Vec3i(val x: Int, val y: Int, val z: Int)
 
 data class IntBox(val min: Vec3i, val max: Vec3i) {
@@ -88,5 +90,6 @@ data class ActiveBox(
     val key: ActiveBoxKey,
     val absolute: IntBox,
     var ttl: Int,
+    val groups: Set<GroupKey> = emptySet(),
 )
 

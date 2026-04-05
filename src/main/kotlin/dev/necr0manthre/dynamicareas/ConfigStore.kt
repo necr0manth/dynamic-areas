@@ -7,6 +7,7 @@ import java.io.File
 class ConfigStore(private val plugin: JavaPlugin) {
     val boxesById: MutableMap<String, BoxTemplate> = linkedMapOf()
     val areasById: MutableMap<String, AreaDefinition> = linkedMapOf()
+    val vectorsById: MutableMap<String, Vec3i> = linkedMapOf()
 
     fun ensureDirectories() {
         if (!plugin.dataFolder.exists()) {
@@ -14,13 +15,16 @@ class ConfigStore(private val plugin: JavaPlugin) {
         }
         File(plugin.dataFolder, "areas").mkdirs()
         File(plugin.dataFolder, "boxes").mkdirs()
+        File(plugin.dataFolder, "vectors").mkdirs()
     }
 
     fun reloadAll() {
         boxesById.clear()
         areasById.clear()
+        vectorsById.clear()
         loadBoxes()
         loadAreas()
+        loadVectors()
     }
 
     private fun loadBoxes() {
@@ -79,6 +83,35 @@ class ConfigStore(private val plugin: JavaPlugin) {
                     listeners = listenersMap,
                 )
             }
+    }
+
+    private fun loadVectors() {
+        val root = File(plugin.dataFolder, "vectors")
+        if (!root.exists()) return
+        root.walkTopDown()
+            .filter { it.isFile && it.extension.equals("yml", ignoreCase = true) }
+            .forEach { file ->
+                val id = root.toRelativeId(file)
+                val yml = YamlConfiguration.loadConfiguration(file)
+                val vec = parseVec3(yml, "vec") ?: run {
+                    plugin.logger.warning("Vector '$id' skipped: missing vec")
+                    return@forEach
+                }
+                vectorsById[id] = vec
+            }
+    }
+
+    fun saveVector(name: String, vec: Vec3i): Result<Unit> {
+        return runCatching {
+            val target = File(plugin.dataFolder, "vectors/${name}.yml")
+            target.parentFile?.mkdirs()
+            val yml = YamlConfiguration()
+            yml.set("vec.x", vec.x)
+            yml.set("vec.y", vec.y)
+            yml.set("vec.z", vec.z)
+            yml.save(target)
+            vectorsById[name] = vec
+        }
     }
 
     fun saveBox(box: BoxTemplate): Result<Unit> {

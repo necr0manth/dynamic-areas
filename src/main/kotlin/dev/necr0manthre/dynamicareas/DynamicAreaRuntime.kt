@@ -8,13 +8,15 @@ class DynamicAreaRuntime(
 ) {
     private val activeBoxes: MutableMap<ActiveBoxKey, ActiveBox> = linkedMapOf()
     private val chunkIndex: MutableMap<UUID, MutableMap<Long, MutableSet<ActiveBoxKey>>> = hashMapOf()
+    private val groupIndex: MutableMap<GroupKey, MutableSet<ActiveBoxKey>> = hashMapOf()
 
     fun clearRuntime() {
         activeBoxes.clear()
         chunkIndex.clear()
+        groupIndex.clear()
     }
 
-    fun addOrRefreshBox(areaId: String, boxId: String, worldId: UUID, baseOffset: Vec3i, ttl: Int): Result<Unit> {
+    fun addOrRefreshBox(areaId: String, boxId: String, worldId: UUID, baseOffset: Vec3i, ttl: Int, groups: Set<GroupKey> = emptySet()): Result<Unit> {
         return runCatching {
             require(ttl >= 1) { "ttl must be >= 1" }
             val area = configStore.areasById[areaId] ?: error("Unknown area_id '$areaId'")
@@ -26,7 +28,7 @@ class DynamicAreaRuntime(
                 return@runCatching
             }
             val absolute = boxTemplate.toAbsolute(baseOffset)
-            val active = ActiveBox(key, absolute, ttl)
+            val active = ActiveBox(key, absolute, ttl, groups)
             activeBoxes[key] = active
             indexBox(active)
         }
@@ -96,6 +98,10 @@ class DynamicAreaRuntime(
 
     fun getAllActiveBoxes(): List<ActiveBox> = activeBoxes.values.toList()
 
+    fun getBoxesByGroup(groupKey: GroupKey): List<ActiveBox> {
+        return groupIndex[groupKey]?.mapNotNull { activeBoxes[it] } ?: emptyList()
+    }
+
     private fun aggregate(areaIds: Set<String>, resolver: (AreaDefinition) -> TriState): TriState {
         var hasDeny = false
         areaIds.forEach { id ->
@@ -125,6 +131,12 @@ class DynamicAreaRuntime(
         if (worldMap.isEmpty()) {
             chunkIndex.remove(active.key.worldId)
         }
+        active.groups.forEach { groupKey ->
+            groupIndex[groupKey]?.remove(active.key)
+            if (groupIndex[groupKey].isNullOrEmpty()) {
+                groupIndex.remove(groupKey)
+            }
+        }
     }
 
     private fun indexBox(active: ActiveBox) {
@@ -135,6 +147,9 @@ class DynamicAreaRuntime(
                 val chunkKey = chunkKey(cx, cz)
                 worldMap.computeIfAbsent(chunkKey) { linkedSetOf() }.add(active.key)
             }
+        }
+        active.groups.forEach { groupKey ->
+            groupIndex.computeIfAbsent(groupKey) { linkedSetOf() }.add(active.key)
         }
     }
 
