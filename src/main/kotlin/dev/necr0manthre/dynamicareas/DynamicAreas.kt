@@ -10,7 +10,14 @@ class DynamicAreas : JavaPlugin() {
     private lateinit var areaEventBridge: AreaEventBridge
     private val pivots: MutableMap<UUID, Vec3i> = hashMapOf()
 
+    companion object {
+        @Volatile var instance: DynamicAreas? = null
+    }
+
+    fun getActiveBoxesByArea(areaId: String): List<ActiveBox> = runtime.getActiveBoxesByArea(areaId)
+
     override fun onEnable() {
+        instance = this
         configStore = ConfigStore(this)
         configStore.ensureDirectories()
         configStore.reloadAll()
@@ -39,6 +46,7 @@ class DynamicAreas : JavaPlugin() {
     }
 
     override fun onDisable() {
+        instance = null
         DaCommand.instance = null
         pivots.clear()
         runtime.clearRuntime()

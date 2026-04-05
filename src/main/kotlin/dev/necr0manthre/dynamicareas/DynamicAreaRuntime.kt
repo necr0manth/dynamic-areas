@@ -90,6 +90,10 @@ class DynamicAreaRuntime(
         return configStore.areasById[areaId]?.listeners?.get(eventType).orEmpty()
     }
 
+    fun getActiveBoxesByArea(areaId: String): List<ActiveBox> {
+        return activeBoxes.values.filter { it.key.areaId == areaId }
+    }
+
     private fun aggregate(areaIds: Set<String>, resolver: (AreaDefinition) -> TriState): TriState {
         var hasDeny = false
         areaIds.forEach { id ->
