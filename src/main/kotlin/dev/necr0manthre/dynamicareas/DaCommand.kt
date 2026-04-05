@@ -103,6 +103,75 @@ class DaCommand(
                 instance?.handleAddBoxToArea(ctx.source.sender, boxId, areaId, offset, null, groupsStr)
             }
 
+            val ttlNamedOffsetArg = Commands.argument("ttl", IntegerArgumentType.integer(1))
+                .executes { ctx ->
+                    val boxId = StringArgumentType.getString(ctx, "box_id")
+                    val areaId = StringArgumentType.getString(ctx, "area_id")
+                    val offsetName = StringArgumentType.getString(ctx, "offset_vec")
+                    val ttl = IntegerArgumentType.getInteger(ctx, "ttl")
+                    instance?.handleAddBoxToAreaWithNamedOffset(ctx.source.sender, boxId, areaId, offsetName, false, ttl, "")
+                    Command.SINGLE_SUCCESS
+                }
+            withGroups(ttlNamedOffsetArg) { ctx, groupsStr ->
+                val boxId = StringArgumentType.getString(ctx, "box_id")
+                val areaId = StringArgumentType.getString(ctx, "area_id")
+                val offsetName = StringArgumentType.getString(ctx, "offset_vec")
+                val ttl = IntegerArgumentType.getInteger(ctx, "ttl")
+                instance?.handleAddBoxToAreaWithNamedOffset(ctx.source.sender, boxId, areaId, offsetName, false, ttl, groupsStr)
+            }
+
+            val offsetNamedArg = Commands.argument("offset_vec", StringArgumentType.string())
+                .executes { ctx ->
+                    val boxId = StringArgumentType.getString(ctx, "box_id")
+                    val areaId = StringArgumentType.getString(ctx, "area_id")
+                    val offsetName = StringArgumentType.getString(ctx, "offset_vec")
+                    instance?.handleAddBoxToAreaWithNamedOffset(ctx.source.sender, boxId, areaId, offsetName, false, null, "")
+                    Command.SINGLE_SUCCESS
+                }
+                .then(ttlNamedOffsetArg)
+            withGroups(offsetNamedArg) { ctx, groupsStr ->
+                val boxId = StringArgumentType.getString(ctx, "box_id")
+                val areaId = StringArgumentType.getString(ctx, "area_id")
+                val offsetName = StringArgumentType.getString(ctx, "offset_vec")
+                instance?.handleAddBoxToAreaWithNamedOffset(ctx.source.sender, boxId, areaId, offsetName, false, null, groupsStr)
+            }
+
+            val ttlInvOffsetArg = Commands.argument("ttl", IntegerArgumentType.integer(1))
+                .executes { ctx ->
+                    val boxId = StringArgumentType.getString(ctx, "box_id")
+                    val areaId = StringArgumentType.getString(ctx, "area_id")
+                    val offsetName = StringArgumentType.getString(ctx, "offset_inv_vec")
+                    val ttl = IntegerArgumentType.getInteger(ctx, "ttl")
+                    instance?.handleAddBoxToAreaWithNamedOffset(ctx.source.sender, boxId, areaId, offsetName, true, ttl, "")
+                    Command.SINGLE_SUCCESS
+                }
+            withGroups(ttlInvOffsetArg) { ctx, groupsStr ->
+                val boxId = StringArgumentType.getString(ctx, "box_id")
+                val areaId = StringArgumentType.getString(ctx, "area_id")
+                val offsetName = StringArgumentType.getString(ctx, "offset_inv_vec")
+                val ttl = IntegerArgumentType.getInteger(ctx, "ttl")
+                instance?.handleAddBoxToAreaWithNamedOffset(ctx.source.sender, boxId, areaId, offsetName, true, ttl, groupsStr)
+            }
+
+            val offsetInvNameArg = Commands.argument("offset_inv_vec", StringArgumentType.string())
+                .executes { ctx ->
+                    val boxId = StringArgumentType.getString(ctx, "box_id")
+                    val areaId = StringArgumentType.getString(ctx, "area_id")
+                    val offsetName = StringArgumentType.getString(ctx, "offset_inv_vec")
+                    instance?.handleAddBoxToAreaWithNamedOffset(ctx.source.sender, boxId, areaId, offsetName, true, null, "")
+                    Command.SINGLE_SUCCESS
+                }
+                .then(ttlInvOffsetArg)
+            withGroups(offsetInvNameArg) { ctx, groupsStr ->
+                val boxId = StringArgumentType.getString(ctx, "box_id")
+                val areaId = StringArgumentType.getString(ctx, "area_id")
+                val offsetName = StringArgumentType.getString(ctx, "offset_inv_vec")
+                instance?.handleAddBoxToAreaWithNamedOffset(ctx.source.sender, boxId, areaId, offsetName, true, null, groupsStr)
+            }
+
+            val offsetInvArg = Commands.literal("inv")
+                .then(offsetInvNameArg)
+
             val areaIdArg = Commands.argument("area_id", StringArgumentType.word())
                 .executes { ctx ->
                     val boxId = StringArgumentType.getString(ctx, "box_id")
@@ -111,6 +180,8 @@ class DaCommand(
                     Command.SINGLE_SUCCESS
                 }
                 .then(offsetArg)
+                .then(offsetNamedArg)
+                .then(offsetInvArg)
             withGroups(areaIdArg) { ctx, groupsStr ->
                 val boxId = StringArgumentType.getString(ctx, "box_id")
                 val areaId = StringArgumentType.getString(ctx, "area_id")
@@ -223,6 +294,30 @@ class DaCommand(
         }.onFailure {
             sender.sendMessage("Error: ${it.message}")
         }
+    }
+
+    private fun handleAddBoxToAreaWithNamedOffset(
+        sender: CommandSender,
+        boxId: String,
+        areaId: String,
+        vectorId: String,
+        inverted: Boolean,
+        ttlArg: Int?,
+        groupsStr: String,
+    ) {
+        val rel = configStore.vectorsById[vectorId] ?: run {
+            sender.sendMessage("Unknown vector '$vectorId'")
+            return
+        }
+
+        val base = baseOffsetFromSender(sender) ?: run {
+            sender.sendMessage("Console must provide offset")
+            return
+        }
+
+        val relOffset = if (inverted) Vec3i(-rel.x, -rel.y, -rel.z) else rel
+        val resolvedOffset = Vec3i(base.x + relOffset.x, base.y + relOffset.y, base.z + relOffset.z)
+        handleAddBoxToArea(sender, boxId, areaId, resolvedOffset, ttlArg, groupsStr)
     }
 
     // Parses "groups_str" into a set of absolute GroupKeys.

@@ -43,7 +43,7 @@ listeners:
 
 ## Команды
 
-- `/da addboxtoarea <box_id> <area_id> [offset_x offset_y offset_z] [ttl]`
+- `/da addboxtoarea <box_id> <area_id> [<offset_x offset_y offset_z> | <vector_id> | inv <vector_id>] [ttl]`
 - `/da setpivot <x> <y> <z>`
 - `/da savebox <box_id> [<start_x start_y start_z end_x end_y end_z>]`
 - `/da reload`
