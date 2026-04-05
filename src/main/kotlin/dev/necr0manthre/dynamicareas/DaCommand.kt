@@ -24,6 +24,7 @@ class DaCommand(
     private val areaEventBridge: AreaEventBridge,
     private val pivots: MutableMap<UUID, Vec3i>,
     private val worldEditSelectionProvider: WorldEditSelectionProvider,
+    private val zoneVisualizer: ZoneVisualizer,
 ) {
 
     companion object {
@@ -38,6 +39,7 @@ class DaCommand(
                 .then(buildAddBoxToArea())
                 .then(buildSetPivot())
                 .then(buildSaveBox())
+                .then(buildVisualize())
                 .then(
                     Commands.literal("reload")
                         .executes { ctx ->
@@ -94,6 +96,21 @@ class DaCommand(
                             val pivot = ctx.getArgument("pos", BlockPositionResolver::class.java)
                                 .resolve(ctx.source).toVec3i()
                             instance?.handleSetPivot(ctx.source.sender, pivot)
+                            Command.SINGLE_SUCCESS
+                        }
+                )
+
+        private fun buildVisualize() =
+            Commands.literal("visualize")
+                .executes { ctx ->
+                    instance?.handleVisualize(ctx.source.sender, null)
+                    Command.SINGLE_SUCCESS
+                }
+                .then(
+                    Commands.argument("area_id", StringArgumentType.word())
+                        .executes { ctx ->
+                            val areaId = StringArgumentType.getString(ctx, "area_id")
+                            instance?.handleVisualize(ctx.source.sender, areaId)
                             Command.SINGLE_SUCCESS
                         }
                 )
@@ -186,6 +203,20 @@ class DaCommand(
         configStore.saveBox(box)
             .onSuccess { sender.sendMessage("Saved box '$boxId' offset=${offset.x},${offset.y},${offset.z} size=${size.x},${size.y},${size.z}") }
             .onFailure { sender.sendMessage("Failed to save box: ${it.message}") }
+    }
+
+    private fun handleVisualize(sender: CommandSender, areaId: String?) {
+        val player = sender as? Player ?: run {
+            sender.sendMessage("Only a player can use visualize")
+            return
+        }
+        val enabled = zoneVisualizer.toggle(player, areaId)
+        if (enabled) {
+            val target = if (areaId != null) "area '$areaId'" else "all areas"
+            sender.sendMessage("Zone visualization enabled for $target (radius ${ZoneVisualizer.RENDER_RADIUS.toInt()} blocks)")
+        } else {
+            sender.sendMessage("Zone visualization disabled")
+        }
     }
 
     private fun handleReload(sender: CommandSender) {

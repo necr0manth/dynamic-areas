@@ -8,6 +8,7 @@ class DynamicAreas : JavaPlugin() {
     private lateinit var configStore: ConfigStore
     private lateinit var runtime: DynamicAreaRuntime
     private lateinit var areaEventBridge: AreaEventBridge
+    private lateinit var zoneVisualizer: ZoneVisualizer
     private val pivots: MutableMap<UUID, Vec3i> = hashMapOf()
 
     companion object {
@@ -25,6 +26,7 @@ class DynamicAreas : JavaPlugin() {
         runtime = DynamicAreaRuntime(configStore)
         val listenerExecutor = ListenerCommandExecutor(this)
         areaEventBridge = AreaEventBridge(runtime, listenerExecutor)
+        zoneVisualizer = ZoneVisualizer(runtime)
 
         DaCommand.instance = DaCommand(
             configStore = configStore,
@@ -32,6 +34,7 @@ class DynamicAreas : JavaPlugin() {
             areaEventBridge = areaEventBridge,
             pivots = pivots,
             worldEditSelectionProvider = WorldEditSelectionProvider(),
+            zoneVisualizer = zoneVisualizer,
         )
 
         server.pluginManager.registerEvents(areaEventBridge, this)
@@ -42,6 +45,11 @@ class DynamicAreas : JavaPlugin() {
             areaEventBridge.tickPlayers(Bukkit.getOnlinePlayers())
         }, 1L, 1L)
 
+        // Particle tick: spawn zone outline particles for visualizing players every 5 ticks.
+        server.globalRegionScheduler.runAtFixedRate(this, { _ ->
+            zoneVisualizer.tick(Bukkit.getOnlinePlayers())
+        }, 5L, 5L)
+
         logger.info("DynamicAreas enabled")
     }
 
@@ -51,5 +59,6 @@ class DynamicAreas : JavaPlugin() {
         pivots.clear()
         runtime.clearRuntime()
         areaEventBridge.clearPlayerCache()
+        Bukkit.getOnlinePlayers().forEach { zoneVisualizer.removePlayer(it) }
     }
 }
