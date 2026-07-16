@@ -1,6 +1,6 @@
 # Dynamic Areas
 
-Dynamic Areas is a plugin for Paper and Folia 1.21.11 that lets map makers define behavior zones in YAML and place reusable instances of those zones into a world at runtime. Zones can be activated from command blocks, which makes them easy to include in redstone systems and other map logic. Optional WorldEdit integration can be used to capture selections and coordinates.
+Dynamic Areas is a plugin for Paper 1.21.11 that lets map makers define behavior zones in YAML and place reusable instances of those zones into a world at runtime. Zones can be activated from command blocks, which makes them easy to include in redstone systems and other map logic. Optional WorldEdit integration can be used to capture selections and coordinates.
 
 The plugin is designed for Minecraft maps that reuse the same structure in multiple locations. Build the structure once, define its zones relative to a pivot, and then copy the structure together with its command blocks. Each copy can activate the same zone layout at its own world position without requiring a separate set of absolute coordinates.
 
@@ -166,13 +166,12 @@ Commands are available to command blocks, operators, and users with the `dynamic
 
 ## Requirements
 
-- Paper or Folia 1.21.11
+- Paper 1.21.11
 - Java version required by the server
 - WorldEdit 7.4.x (optional, only needed for selection-based commands)
 
 ## Building
 
 ```powershell
-Set-Location "C:\Projects\dynamic-areas"
-.\gradlew.bat build
+.\gradlew.bat clean build --no-daemon
 ```

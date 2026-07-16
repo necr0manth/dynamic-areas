@@ -43,13 +43,13 @@ class DynamicAreas : JavaPlugin() {
         server.pluginManager.registerEvents(areaEventBridge, this)
 
         // Global tick: update TTL and recalculate player area membership diff.
-        server.globalRegionScheduler.runAtFixedRate(this, { _ ->
+        server.scheduler.runTaskTimer(this, Runnable {
             runtime.tickTtl()
             areaEventBridge.tickPlayers(Bukkit.getOnlinePlayers())
         }, 1L, 1L)
 
         // Particle tick: spawn zone outline particles for visualizing players every 5 ticks.
-        server.globalRegionScheduler.runAtFixedRate(this, { _ ->
+        server.scheduler.runTaskTimer(this, Runnable {
             zoneVisualizer.tick(Bukkit.getOnlinePlayers())
         }, 5L, 5L)
 
