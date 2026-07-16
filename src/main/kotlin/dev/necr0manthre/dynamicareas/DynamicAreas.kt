@@ -28,8 +28,8 @@ class DynamicAreas : JavaPlugin() {
 
         runtime = DynamicAreaRuntime(configStore)
         val listenerExecutor = ListenerCommandExecutor(this)
-        areaEventBridge = AreaEventBridge(runtime, listenerExecutor)
         zoneVisualizer = ZoneVisualizer(runtime)
+        areaEventBridge = AreaEventBridge(runtime, listenerExecutor, pivots, zoneVisualizer)
 
         DaCommand.instance = DaCommand(
             configStore = configStore,

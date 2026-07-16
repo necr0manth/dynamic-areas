@@ -20,6 +20,8 @@ import java.util.UUID
 class AreaEventBridge(
     private val runtime: DynamicAreaRuntime,
     private val listenerCommandExecutor: ListenerCommandExecutor,
+    private val pivots: MutableMap<UUID, Vec3i>,
+    private val zoneVisualizer: ZoneVisualizer,
 ) : Listener {
     private val lastPlayerAreas: MutableMap<UUID, Set<String>> = hashMapOf()
 
@@ -145,6 +147,8 @@ class AreaEventBridge(
     @EventHandler
     fun onQuit(event: PlayerQuitEvent) {
         lastPlayerAreas.remove(event.player.uniqueId)
+        pivots.remove(event.player.uniqueId)
+        zoneVisualizer.removePlayer(event.player)
     }
 
     fun tickPlayers(players: Collection<Player>) {

@@ -17,8 +17,9 @@ class ZoneVisualizer(private val runtime: DynamicAreaRuntime) {
      * If already visualizing with a different filter, updates the filter instead.
      */
     fun toggle(player: Player, areaId: String?): Boolean {
+        val isVisualizing = visualizing.containsKey(player.uniqueId)
         val existing = visualizing[player.uniqueId]
-        return if (existing == null) {
+        return if (!isVisualizing) {
             visualizing[player.uniqueId] = areaId
             true
         } else if (existing == areaId) {
