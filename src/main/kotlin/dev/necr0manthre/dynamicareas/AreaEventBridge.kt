@@ -38,9 +38,8 @@ class AreaEventBridge(
         // Use setUseInteractedBlock so we only affect the block interaction,
         // not the item-in-hand use (block placement), which is independent.
         when (runtime.aggregateInteractions(areaIds)) {
-            TriState.ALLOW -> event.setUseInteractedBlock(Event.Result.ALLOW)
             TriState.DENY -> event.setUseInteractedBlock(Event.Result.DENY)
-            TriState.IGNORE -> Unit
+            TriState.ALLOW, TriState.IGNORE -> Unit
         }
 
         val ctx = mutableMapOf<String, String>()
@@ -61,9 +60,8 @@ class AreaEventBridge(
             return
         }
         when (runtime.aggregateBlockPlacing(areaIds)) {
-            TriState.ALLOW -> event.isCancelled = false
             TriState.DENY -> event.isCancelled = true
-            TriState.IGNORE -> Unit
+            TriState.ALLOW, TriState.IGNORE -> Unit
         }
     }
 
@@ -74,9 +72,8 @@ class AreaEventBridge(
             return
         }
         when (runtime.aggregateBlockBreaking(areaIds)) {
-            TriState.ALLOW -> event.isCancelled = false
             TriState.DENY -> event.isCancelled = true
-            TriState.IGNORE -> Unit
+            TriState.ALLOW, TriState.IGNORE -> Unit
         }
     }
 

@@ -72,7 +72,7 @@ listeners:
 
 The values for `block_breaking`, `block_placing`, and `interactions` are:
 
-- `allow` — explicitly allow the action;
+- `allow` — allow the action;
 - `deny` — cancel the action;
 - `ignore` — leave the event unchanged. This is also the default.
 
