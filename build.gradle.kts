@@ -10,18 +10,20 @@ repositories {
     maven("https://maven.enginehub.org/repo/")
 }
 
+val paperApiVersion = "26.2.build.126-stable"
+
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    compileOnly("com.sk89q.worldedit:worldedit-core:7.4.2")
-    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.2")
+    compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
+    compileOnly("com.sk89q.worldedit:worldedit-core:7.4.4")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.4")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     testImplementation(kotlin("test-junit5"))
-    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:$paperApiVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 tasks {
@@ -34,7 +36,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.21.11")
+        minecraftVersion("26.2")
         jvmArgs("-Xms2G", "-Xmx2G", "-Dcom.mojang.eula.agree=true")
     }
 
