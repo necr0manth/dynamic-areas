@@ -15,6 +15,9 @@ dependencies {
     compileOnly("com.sk89q.worldedit:worldedit-core:7.4.2")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.2")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    testImplementation(kotlin("test-junit5"))
+    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin {
@@ -22,6 +25,10 @@ kotlin {
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
     build {
         dependsOn(shadowJar)
     }

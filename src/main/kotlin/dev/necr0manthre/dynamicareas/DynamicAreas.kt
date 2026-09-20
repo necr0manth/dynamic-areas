@@ -16,7 +16,7 @@ class DynamicAreas : JavaPlugin() {
     }
 
     fun getActiveBoxesByArea(areaId: String): List<ActiveBox> = runtime.getActiveBoxesByArea(areaId)
-    fun getBoxesByGroup(worldId: UUID, pos: Vec3i): List<ActiveBox> = runtime.getBoxesByGroup(GroupKey(worldId, pos))
+    fun getBoxesByGroup(worldId: UUID, pos: Vec3i, name: String): List<ActiveBox> = runtime.getBoxesByGroup(worldId, pos, name)
     fun getBoxesByGroup(groupKey: GroupKey): List<ActiveBox> = runtime.getBoxesByGroup(groupKey)
     fun getSavedVector(vectorId: String): Vec3i? = configStore.vectorsById[vectorId]
 

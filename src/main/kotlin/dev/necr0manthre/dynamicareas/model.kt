@@ -3,7 +3,7 @@ package dev.necr0manthre.dynamicareas
 import java.util.Locale
 import java.util.UUID
 
-data class GroupKey(val worldId: UUID, val pos: Vec3i)
+data class GroupKey(val worldId: UUID, val pos: Vec3i, val name: String)
 
 data class Vec3i(val x: Int, val y: Int, val z: Int)
 
@@ -25,6 +25,24 @@ data class BoxTemplate(
         return IntBox(min, max)
     }
 }
+
+data class ClusterGroup(
+    val name: String,
+    val offset: Vec3i = Vec3i(0, 0, 0),
+)
+
+data class ClusterEntry(
+    val id: String,
+    val boxId: String,
+    val areaId: String,
+    val offset: Vec3i = Vec3i(0, 0, 0),
+    val groups: Set<ClusterGroup> = emptySet(),
+)
+
+data class ClusterDefinition(
+    val id: String,
+    val entries: List<ClusterEntry> = emptyList(),
+)
 
 enum class AreaEventType(val key: String) {
     ON_INTERACT("on_interact"),
@@ -84,12 +102,15 @@ data class ActiveBoxKey(
     val boxId: String,
     val worldId: UUID,
     val baseOffset: Vec3i,
+    val sourceId: String = DIRECT_SOURCE_ID,
 )
 
 data class ActiveBox(
     val key: ActiveBoxKey,
-    val absolute: IntBox,
+    var absolute: IntBox,
     var ttl: Int,
-    val groups: Set<GroupKey> = emptySet(),
+    var groups: Set<GroupKey> = emptySet(),
 )
+
+const val DIRECT_SOURCE_ID: String = "direct"
 
